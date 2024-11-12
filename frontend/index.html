@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kipchimtai Login</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #bde2d6;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            background-color: #45a049;
+        }
+
+        .links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Kipchimtai</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="text" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-button">Log In</button>
+            <div class="links">
+                <a href="#">forgot password?</a>
+                <a href="#">reset password</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // In a real application, you would validate credentials here
+            window.location.href = 'dashboard.html?logged_in=true';
+        });
+    </script>
+</body>
+</html>
