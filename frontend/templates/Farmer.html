@@ -178,32 +178,36 @@
     </div>
 
     <script>
-       document.getElementById('farmerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const farmerData = {
-        id: document.getElementById('farmerId').value,
-        name: document.getElementById('farmerName').value,
-        phone: document.getElementById('phoneNumber').value,
-        bankAccount: document.getElementById('bankAccount').value
-    };
+     document.getElementById('farmerForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const farmerData = {
+    id: document.getElementById('farmerId').value,
+    name: document.getElementById('farmerName').value, 
+    phone: document.getElementById('phoneNumber').value,
+    bankAccount: document.getElementById('bankAccount').value
+  };
 
-    fetch('/api/farmers')
+  // Send a POST request to the registration endpoint
+  fetch('/api/register_farmer', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(farmerData)
+  })
   .then(response => response.json())
   .then(data => {
-    let html = '';
-    data.forEach(farmer => {
-      html += `<div>
-                 <p>ID: ${farmer.id}</p>
-                 <p>Name: ${farmer.name}</p>
-                 <p>Phone: ${farmer.phone}</p>
-                 <p>Bank Account: ${farmer.bank_account}</p>
-               </div>`;
-    });
-    document.getElementById('farmersContainer').innerHTML = html;
+    if (data.error) {
+      console.error('Error registering farmer:', data.error);
+      alert('Error: ' + data.error);
+    } else {
+      alert('Farmer registered successfully with ID: ' + data.id);
+      
+      
+    }
   })
-  .catch(error => console.error('Error retrieving farmers:', error));
-
+  .catch(error => console.error('Error registering farmer:', error));
 });
+
 
     </script>
 </body>

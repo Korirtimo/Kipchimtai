@@ -156,91 +156,17 @@
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='1' x2='12' y2='23'%3E%3C/line%3E%3Cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'%3E%3C/path%3E%3C/svg%3E" alt="Payments">
         <h2>Payments</h2>
     </div>
-
-    <div class="payments-container">
-        <div class="summary-card">
-            <h3 style="margin-bottom: 15px;">Monthly Summary</h3>
-            <div class="summary-stats">
-                <div class="stat-item">
-                    <div class="stat-label">Total Payable</div>
-                    <div class="stat-value">KES 245,800</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Paid Amount</div>
-                    <div class="stat-value">KES 180,600</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Pending Amount</div>
-                    <div class="stat-value">KES 65,200</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Total Farmers</div>
-                    <div class="stat-value">12</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="payment-controls">
-            <select class="month-selector">
-                <option value="11">November 2024</option>
-                <option value="10">October 2024</option>
-                <option value="9">September 2024</option>
-            </select>
-        </div>
-
-        <table class="payment-table">
-            <thead>
-                <tr>
-                    <th>Farmer ID</th>
-                    <th>Name</th>
-                    <th>Total Liters</th>
-                    <th>Rate (KES/L)</th>
-                    <th>Amount (KES)</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>F001</td>
-                    <td>John Kipchoge</td>
-                    <td>580</td>
-                    <td>65</td>
-                    <td>37,700</td>
-                    <td><span class="status paid">Paid</span></td>
-                    <td><button class="action-button">View Details</button></td>
-                </tr>
-                <tr>
-                    <td>F002</td>
-                    <td>Mary Cherono</td>
-                    <td>420</td>
-                    <td>65</td>
-                    <td>27,300</td>
-                    <td><span class="status pending">Pending</span></td>
-                    <td><button class="action-button">Process Payment</button></td>
-                </tr>
-                <tr>
-                    <td>F003</td>
-                    <td>David Ruto</td>
-                    <td>890</td>
-                    <td>65</td>
-                    <td>57,850</td>
-                    <td><span class="status paid">Paid</span></td>
-                    <td><button class="action-button">View Details</button></td>
-                </tr>
-                <tr>
-                    <td>F004</td>
-                    <td>Sarah Jepkoech</td>
-                    <td>650</td>
-                    <td>65</td>
-                    <td>42,250</td>
-                    <td><span class="status pending">Pending</span></td>
-                    <td><button class="action-button">Process Payment</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
+    <div class="payment-controls">
+        <select id="monthSelector">
+          <option value="2025-03">March 2025</option>
+          <option value="2025-02">February 2025</option>
+          <option value="2025-01">January 2025</option>
+        </select>
+      </div>
+      <div id="paymentsContainer"></div>
+    
+      <script src="static/script.js"></script>
+    
     <script>
         fetch('/api/payments')
   .then(response => response.json())
@@ -260,6 +186,53 @@
     document.getElementById('paymentsContainer').innerHTML = tableHTML;
   });
 
+   // Function to update the payments table
+   function updatePayments() {
+      const month = document.getElementById('displayMonth').textContent;
+      fetch(`/api/payments?month=${month}`)
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.querySelector('#paymentsTable tbody');
+          tbody.innerHTML = '';  // Clear existing rows
+
+          data.forEach(record => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${record.farmer_id}</td>
+              <td>${record.name}</td>
+              <td>${record.total_liters}</td>
+              <td>${record.rate}</td>
+              <td>${record.amount}</td>
+              <td>${record.status}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error updating payments:', error));
+    }
+
+    // Function to handle record insertion
+    function addMilkRecord(recordData) {
+      fetch('/api/add_record', {  // Assuming you have an endpoint to add records
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(recordData)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          // After successfully adding a record, update the payments table
+          updatePayments();
+        }
+      })
+      .catch(error => console.error('Error adding milk record:', error));
+    }
+
+    // Optionally, update payments periodically in case changes come from other sources
+    setInterval(updatePayments, 5000);
+
+    // Initial load of payments data
+    updatePayments();
     </script>
 </body>
 </html>
