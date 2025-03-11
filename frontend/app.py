@@ -10,8 +10,8 @@ app.secret_key = 'your_secret_key'  # Replace with a strong secret key
 def get_db_connection():
     connection = mysql.connector.connect(
         host=os.getenv('DB_HOST', 'localhost'),
-        user=os.getenv('DB_USER', 'tim'),
-        password=os.getenv('DB_PASSWORD', 'Tim@5150'),
+        user=os.getenv('DB_USER', ''),
+        password=os.getenv('DB_PASSWORD', ''),
         database=os.getenv('DB_NAME', 'kipchimtai')
     )
     return connection
