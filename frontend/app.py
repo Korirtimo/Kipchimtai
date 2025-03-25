@@ -159,6 +159,50 @@ def get_farmers():
     conn.close()
     return jsonify(farmers)
 
+@app.route('/api/reports', methods=['GET'])
+def get_reports():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Get milk delivered per farmer
+    query_farmers = """
+    SELECT f.name AS farmer, SUM(m.quantity) AS total_milk 
+    FROM farmers f
+    LEFT JOIN milk_records m ON f.id = m.farmer_id
+    GROUP BY f.name
+    ORDER BY total_milk DESC
+    """
+    cursor.execute(query_farmers)
+    farmers_data = cursor.fetchall()
+
+    # Get daily milk delivered
+    query_daily = """
+    SELECT DATE(record_date) AS date, SUM(quantity) AS total_milk
+    FROM milk_records
+    GROUP BY DATE(record_date)
+    ORDER BY date
+    """
+    cursor.execute(query_daily)
+    daily_data = cursor.fetchall()
+
+    # Get weekly milk delivered
+    query_weekly = """
+    SELECT YEAR(record_date) AS year, WEEK(record_date) AS week, SUM(quantity) AS total_milk
+    FROM milk_records
+    GROUP BY year, week
+    ORDER BY year DESC, week DESC
+    """
+    cursor.execute(query_weekly)
+    weekly_data = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "farmers": farmers_data,
+        "daily": daily_data,
+        "weekly": weekly_data
+    })
 
 
 ### Serve Static HTML Pages Using Flask's render_template (Optional)

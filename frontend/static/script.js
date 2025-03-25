@@ -221,6 +221,138 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/api/reports')
+      .then(response => response.json())
+      .then(data => {
+          renderFarmersChart(data.farmers);
+          renderDailyChart(data.daily);
+          renderWeeklyChart(data.weekly);
+      })
+      .catch(error => console.error('Error loading report data:', error));
+});
+
+// 🌟 Chart 1: Total Milk Delivered by Each Farmer (Bar Chart)
+function renderFarmersChart(farmersData) {
+  const ctx = document.getElementById('farmersChart').getContext('2d');
+  new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: farmersData.map(f => f.farmer),
+          datasets: [{
+              label: 'Total Milk Delivered (Liters)',
+              data: farmersData.map(f => f.total_milk),
+              backgroundColor: 'rgba(75, 192, 192, 0.7)', // Teal bars
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 2,
+              borderRadius: 8, // Rounded corners
+              hoverBackgroundColor: 'rgba(75, 192, 192, 0.9)'
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { display: true },
+              tooltip: { enabled: true }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(200, 200, 200, 0.3)' }
+              },
+              x: {
+                  grid: { display: false }
+              }
+          }
+      }
+  });
+}
+
+// 🌟 Chart 2: Daily Milk Deliveries (Smooth Line Chart with Gradient)
+function renderDailyChart(dailyData) {
+  const ctx = document.getElementById('dailyChart').getContext('2d');
+
+  // Create gradient background
+  let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+  gradient.addColorStop(0, 'rgba(255, 99, 132, 0.5)'); // Red top
+  gradient.addColorStop(1, 'rgba(255, 99, 132, 0.1)'); // Transparent bottom
+
+  new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: dailyData.map(d => d.date),
+          datasets: [{
+              label: 'Milk Delivered (Liters)',
+              data: dailyData.map(d => d.total_milk),
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: gradient,
+              fill: true, // Gradient fill
+              borderWidth: 3,
+              pointRadius: 5,
+              pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+              tension: 0.3 // Smooth curve
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { display: true },
+              tooltip: { enabled: true }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(200, 200, 200, 0.3)' }
+              },
+              x: {
+                  grid: { display: false }
+              }
+          }
+      }
+  });
+}
+
+// 🌟 Chart 3: Weekly Milk Deliveries (Colorful Bar Chart)
+function renderWeeklyChart(weeklyData) {
+  const ctx = document.getElementById('weeklyChart').getContext('2d');
+
+  // Generate a different color for each bar
+  const barColors = weeklyData.map(() => `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 0.7)`);
+
+  new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: weeklyData.map(w => `Week ${w.week}, ${w.year}`),
+          datasets: [{
+              label: 'Milk Delivered (Liters)',
+              data: weeklyData.map(w => w.total_milk),
+              backgroundColor: barColors,
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 2,
+              borderRadius: 8,
+              hoverBackgroundColor: 'rgba(54, 162, 235, 0.9)'
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { display: true },
+              tooltip: { enabled: true }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(200, 200, 200, 0.3)' }
+              },
+              x: {
+                  grid: { display: false }
+              }
+          }
+      }
+  });
+}
+
+
 // Set up event listeners for navigation links
 homeLink.addEventListener('click', showHomePage);
 recordsLink.addEventListener('click', showRecordsPage);
