@@ -1,5 +1,6 @@
+from io import BytesIO
 import random
-from flask import Flask, request, jsonify, session, render_template, redirect, url_for
+from flask import Flask, Response, request, jsonify, session, render_template, redirect, url_for
 import mysql.connector
 import bcrypt
 import os
@@ -203,6 +204,75 @@ def get_reports():
         "daily": daily_data,
         "weekly": weekly_data
     })
+
+@app.route('/api/reports')
+def get_report_data():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT f.name, SUM(r.quantity) AS total FROM milk_records r JOIN farmers f ON r.farmer_id = f.id GROUP BY f.name")
+    farmers_data = cursor.fetchall()
+
+    cursor.execute("SELECT DATE(record_date) AS date, SUM(quantity) AS total FROM milk_records GROUP BY DATE(record_date)")
+    daily_data = cursor.fetchall()
+
+    cursor.execute("SELECT YEAR(record_date) AS year, WEEK(record_date) AS week, SUM(quantity) AS total FROM milk_records GROUP BY year, week")
+    weekly_data = [{"week": f"{row['year']}-W{row['week']}", "total": row['total']} for row in cursor.fetchall()]
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "farmers": farmers_data,
+        "daily": daily_data,
+        "weekly": weekly_data
+    })
+
+
+@app.route('/download/csv')
+def download_csv():
+    # Generate CSV file
+    from io import StringIO
+    import csv
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT f.name, r.record_date, r.quantity, (r.quantity * 50) AS payment FROM milk_records r JOIN farmers f ON r.farmer_id = f.id")
+    records = cursor.fetchall()
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Farmer Name', 'Date', 'Milk Quantity (Liters)'])
+    writer.writerows(records)
+
+    output.seek(0)
+    return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment; filename=milk_report.csv"})
+
+
+@app.route('/download/pdf')
+def download_pdf():
+    from fpdf import FPDF
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT f.name, r.record_date, r.quantity FROM milk_records r JOIN farmers f ON r.farmer_id = f.id")
+    records = cursor.fetchall()
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, "Milk Delivery Report", ln=True, align="C")
+
+    pdf.set_font("Arial", size=10)
+    for name, date, qty in records:
+        pdf.cell(200, 8, f"{name} - {date} - {qty} Liters", ln=True)
+
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+
+    return Response(pdf_output, mimetype='application/pdf', headers={"Content-Disposition": "attachment; filename=milk_report.pdf"})
+
 
 
 ### Serve Static HTML Pages Using Flask's render_template (Optional)

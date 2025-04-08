@@ -352,6 +352,284 @@ function renderWeeklyChart(weeklyData) {
   });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    fetchDataAndRenderCharts();
+});
+
+async function fetchDataAndRenderCharts() {
+    const response = await fetch('/api/reports'); // Adjust API endpoint accordingly
+    const data = await response.json();
+
+    renderChart("farmersChart", "Total Milk by Farmers", data.farmers, "rgb(54, 162, 235)");
+    renderChart("dailyChart", "Daily Milk Deliveries", data.daily, "rgb(255, 99, 132)");
+    renderChart("weeklyChart", "Weekly Milk Deliveries", data.weekly, "rgb(75, 192, 192)");
+}
+
+function renderChart(canvasId, label, chartData, color) {
+    const ctx = document.getElementById(canvasId).getContext("2d");
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: label,
+                data: chartData.values,
+                backgroundColor: color,
+                borderColor: color.replace("rgb", "rgba").replace(")", ", 0.8)"),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            }
+        }
+    });
+}
+
+// Function to download data as CSV
+function downloadCSV() {
+    fetch('/api/reports') // Adjust API endpoint
+        .then(response => response.json())
+        .then(data => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Category,Value\n";
+
+            ["farmers", "daily", "weekly"].forEach(category => {
+                data[category].labels.forEach((label, i) => {
+                    csvContent += `${label},${data[category].values[i]}\n`;
+                });
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "milk_reports.csv");
+            document.body.appendChild(link);
+            link.click();
+        });
+}
+
+// Function to download reports as a PDF
+function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Milk Delivery Reports", 10, 10);
+
+    fetch('/api/reports')
+        .then(response => response.json())
+        .then(data => {
+            let y = 20;
+            ["farmers", "daily", "weekly"].forEach(category => {
+                doc.setFontSize(14);
+                doc.text(category.toUpperCase(), 10, y);
+                y += 6;
+
+                data[category].labels.forEach((label, i) => {
+                    doc.setFontSize(10);
+                    doc.text(`${label}: ${data[category].values[i]}`, 10, y);
+                    y += 5;
+                });
+
+                y += 6;
+            });
+
+            doc.save("milk_reports.pdf");
+        });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  fetchDataAndRenderCharts();
+});
+
+async function fetchDataAndRenderCharts() {
+  const response = await fetch('/api/reports'); // Adjust API endpoint accordingly
+  const data = await response.json();
+
+  renderChart("farmersChart", "Total Milk by Farmers", data.farmers, "rgb(54, 162, 235)");
+  renderChart("dailyChart", "Daily Milk Deliveries", data.daily, "rgb(255, 99, 132)");
+  renderChart("weeklyChart", "Weekly Milk Deliveries", data.weekly, "rgb(75, 192, 192)");
+}
+
+function renderChart(canvasId, label, chartData, color) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+  new Chart(ctx, {
+      type: "bar",
+      data: {
+          labels: chartData.labels,
+          datasets: [{
+              label: label,
+              data: chartData.values,
+              backgroundColor: color,
+              borderColor: color.replace("rgb", "rgba").replace(")", ", 0.8)"),
+              borderWidth: 1
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+          }
+      }
+  });
+}
+
+// Attach functions to the global window object
+window.downloadCSV = generateCSV;
+window.downloadPDF = generatePDF;
+
+// Function to download data as CSV
+function downloadCSV() {
+  fetch('/api/reports') // Adjust API endpoint
+      .then(response => response.json())
+      .then(data => {
+          let csvContent = "data:text/csv;charset=utf-8,";
+          csvContent += "Category,Value\n";
+
+          ["farmers", "daily", "weekly"].forEach(category => {
+              data[category].labels.forEach((label, i) => {
+                  csvContent += `${label},${data[category].values[i]}\n`;
+              });
+          });
+
+          const encodedUri = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", "milk_reports.csv");
+          document.body.appendChild(link);
+          link.click();
+      });
+}
+
+// Function to download reports as a PDF
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("Milk Delivery Reports", 10, 10);
+
+  fetch('/api/reports')
+      .then(response => response.json())
+      .then(data => {
+          let y = 20;
+          ["farmers", "daily", "weekly"].forEach(category => {
+              doc.setFontSize(14);
+              doc.text(category.toUpperCase(), 10, y);
+              y += 6;
+
+              data[category].labels.forEach((label, i) => {
+                  doc.setFontSize(10);
+                  doc.text(`${label}: ${data[category].values[i]}`, 10, y);
+                  y += 5;
+              });
+
+              y += 6;
+          });
+
+          doc.save("milk_reports.pdf");
+      });
+
+      function generateCSV(data) {
+        console.log("Generating CSV...");
+    
+        let csvContent = "data:text/csv;charset=utf-8,";
+    
+        // Farmers Data
+        csvContent += "Farmer,Total Milk Delivered (Liters)\n";
+        csvContent += data.farmers.map(f => `${f.farmer},${f.total_milk}`).join("\n") + "\n\n";
+    
+        // Daily Milk Data
+        csvContent += "Date,Total Milk Delivered (Liters)\n";
+        csvContent += data.daily.map(d => `${d.record_date},${d.total_milk}`).join("\n") + "\n\n";
+    
+        // Weekly Milk Data
+        csvContent += "Week,Total Milk Delivered (Liters)\n";
+        csvContent += data.weekly.map(w => `${w.week},${w.total_milk}`).join("\n");
+    
+        console.log("CSV Content:", csvContent); // Debugging step
+    
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "milk_reports.csv");
+    
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    function generatePDF(data) {
+      console.log("Generating PDF...");
+  
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("Kipchimtai Milk Reports", 20, 20);
+  
+      let y = 30;
+  
+      function addSection(title, dataset) {
+          doc.setFontSize(14);
+          doc.text(title, 20, y);
+          y += 10;
+          doc.setFontSize(12);
+          dataset.forEach(row => {
+              doc.text(row, 20, y);
+              y += 8;
+          });
+          y += 10;
+      }
+  
+      addSection("Total Milk Delivered by Each Farmer", data.farmers.map(f => `${f.farmer}: ${f.total_milk} Liters`));
+      addSection("Daily Milk Deliveries", data.daily.map(d => `${d.record_date}: ${d.total_milk} Liters`));
+      addSection("Weekly Milk Deliveries", data.weekly.map(w => `Week ${w.week}: ${w.total_milk} Liters`));
+  
+      console.log("Saving PDF...");
+      doc.save("milk_reports.pdf");
+  }
+      
+}
+
+function downloadCSV() {
+  window.location.href = '/download/csv';
+}
+
+function downloadPDF() {
+  window.location.href = '/download/pdf';
+}
+
+function renderPaymentsChart(data) {
+  const labels = data.map(entry => entry.farmer);
+  const payments = data.map(entry => entry.payment);
+
+  new Chart(document.getElementById('paymentsChart'), {
+      type: 'bar',
+      data: {
+          labels: labels,
+          datasets: [{
+              label: 'Monthly Payment (KES)',
+              data: payments,
+              backgroundColor: '#008080'
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              title: {
+                  display: true,
+                  text: 'Payments to Farmers'
+              }
+          }
+      }
+  });
+}
+
+
 
 // Set up event listeners for navigation links
 homeLink.addEventListener('click', showHomePage);
